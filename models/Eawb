@@ -1,0 +1,8 @@
+function Eawb() {
+    this.StandardMessageIdentification = "FWB/16";
+    this.AWBIdentification = "";
+}
+
+
+
+module.exports = Eawb;
