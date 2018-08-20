@@ -13,24 +13,42 @@ module.exports.awb = async function (req, res) {
     let awb = new Eawb();
     awb.AWBConsignmentDetail = await createAWBConsignmentDetail(awbData, flightData);
     awb.FlightBookings = createFlightBookings(awbId, flightData);
+    awb.Routing = createRouting(flightData);
+    awb.Shipper = await createShipper(awbData[0].Shipper_ID);
+
 
     console.log(awb);
+
+    async function createShipper(shipperId) {
+        let shipperData = await knex('companies').where('CompanyID', shipperId);
+        console.log(shipperData);
+
+        let shipper = shipperData[0].CompanyName.slice(0,34);
+
+        return "SHP\r\n"+ "/"+shipper;
+    }
+
+
+    function createRouting(flightData) {
+        let routing = "";
+        _.forEach(flightData, (value, key) => {
+            routing = routing + value.Destination + value['Avia Id'] + "/";
+        });
+        return "RTG/" + routing.slice(0, -1)
+    }
 
 
     function createFlightBookings(awbId, flightData) {
         //console.log('flightData->',flightData.length);
-        let flightIdentification='';
-        _.forEach(flightData, (value, key)=>{
-            let flightDay=new Date(value['Flight_Date']).getDate();
+        let flightIdentification = '';
+        _.forEach(flightData, (value, key) => {
+            let flightDay = new Date(value['Flight_Date']).getDate();
             flightIdentification = flightIdentification +
-                value['Avia Id']+
-                value['Flug Nr']+'/'+flightDay+'/';
+                value['Avia Id'] +
+                value['Flug Nr'] + '/' + flightDay + '/';
         });
-
-        console.log(flightIdentification);
-
-
-        return "FLT/"+flightIdentification.slice(0,-1);
+        //console.log(flightIdentification);
+        return "FLT/" + flightIdentification.slice(0, -1);
     }
 
     async function createAWBConsignmentDetail(awbData, flightData) {
