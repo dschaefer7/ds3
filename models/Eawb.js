@@ -1,9 +1,12 @@
 function Eawb() {
-    this.StandardMessageIdentification = "FWB/16" + '\r\n';
+    this.StandardMessageIdentification = "FWB/17" + '\r\n';
     this.AWBConsignmentDetail = "";
     this.FlightBookings = "";
     this.Routing = "";
     this.Shipper = "";
+    this.Consignee="";
+    this.Agent="";
+    this.SSR="";
 }
 
 

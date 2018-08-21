@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const knex = require('knex')(require('../database/knex'));
 const Eawb = require('../models/Eawb');
+const iso = require('iso-countries');
 
 //5910225
 //62754576
@@ -15,17 +16,50 @@ module.exports.awb = async function (req, res) {
     awb.FlightBookings = createFlightBookings(awbId, flightData);
     awb.Routing = createRouting(flightData);
     awb.Shipper = await createShipper(awbData[0].Shipper_ID);
+    awb.Consignee = await createConsignee(awbData[0].Consignee_ID);
+    awb.Agent = await createAgent();
+    awb.SSR = await createSSR();
 
 
-    console.log(awb);
+
+
+    //console.log(awb);
+    function createSSR() {
+        let ssr="SSR/GENERAL\r\n/GENERAL"
+    }
+
+    function createAgent() {
+        let name="/Express Reise- & Luftfrachtdienste GmbH".slice(0,34)+"\r\n";
+        let agent = "AGT//2347251/3061"+"\r\n"+name+"/30669 Hannover";
+        console.log(agent);
+        return agent;
+    }
+
+
+    async function createConsignee(consigneeId) {
+        let consigneeData = await knex('companies').where('CompanyID', consigneeId);
+        //console.log(shipperData);
+        let consigneeName = "NAM/" + consigneeData[0].CompanyName.slice(0, 34) + "\r\n";
+        let consigneeStreet = "ADR/" + consigneeData[0].Street.slice(0, 34) + "\r\n";
+        let consigneeLocation = "LOC/" + consigneeData[0].City.slice(0, 16) + "\r\n";
+        let country = iso.findCountryByName(consigneeData[0].Country).alpha2;
+        let codedLocation_C = "/"+country + "/" + consigneeData[0].PostalCode + "\r\n";
+        let consignee = "CNE\r\n" + consigneeName + consigneeStreet + consigneeLocation + codedLocation_C;
+        console.log(consignee);
+        return consignee;
+    }
+
 
     async function createShipper(shipperId) {
         let shipperData = await knex('companies').where('CompanyID', shipperId);
-        console.log(shipperData);
-
-        let shipper = shipperData[0].CompanyName.slice(0,34);
-
-        return "SHP\r\n"+ "/"+shipper;
+        //console.log(shipperData);
+        let shipperName = "NAM/" + shipperData[0].CompanyName.slice(0, 34) + "\r\n";
+        let shipperStreet = "ADR/" + shipperData[0].Street.slice(0, 34) + "\r\n";
+        let shipperLocation = "LOC/" + shipperData[0].City.slice(0, 16) + "\r\n";
+        let codedLocation_C = "/DE" + "/" + shipperData[0].PostalCode + "\r\n";
+        let shipper = "SHP\r\n" + shipperName + shipperStreet + shipperLocation + codedLocation_C;
+        console.log(shipper);
+        return shipper;
     }
 
 
