@@ -9,23 +9,51 @@ const iso = require('iso-countries');
 module.exports.awb = async function (req, res) {
     let awbnr = req.body.awbnr;
     const awbData = await getAwbData(awbnr);
-    const awbId = awbData[0].AWB_ID;
+    //console.log(awbData);
+    const awbId = awbData.AWB_ID;
     let flightData = await getFlightData(awbId);
+    let detailData = await getDetailData(awbId);
+
     let awb = new Eawb();
-    awb.AWBConsignmentDetail = await createAWBConsignmentDetail(awbData, flightData);
+    awb.AWBConsignmentDetail = await createAWBConsignmentDetail(awbData, flightData, detailData);
     awb.FlightBookings = createFlightBookings(awbId, flightData);
     awb.Routing = createRouting(flightData);
-    awb.Shipper = await createShipper(awbData[0].Shipper_ID);
-    awb.Consignee = await createConsignee(awbData[0].Consignee_ID);
+    awb.Shipper = await createShipper(awbData.Shipper_ID);
+    awb.Consignee = await createConsignee(awbData.Consignee_ID);
     awb.Agent = await createAgent();
     awb.SSR = await createSSR();
-
+    awb.ChargeDeclaration = createChargeDeclaration(awbData);
+    awb.RateDescription = createRateDescription(detailData);
 
 
 
     //console.log(awb);
+    
+    function createRateDescription(detailData) {
+        let rateDescription="RTG/";
+        console.log(rateDescription);
+
+        return rateDescription;
+    }
+
+    function createChargeDeclaration(awbData) {
+        let chargeDeclaration="CVD/" + awbData.Currency+"/"
+            +awbData.CHGS_Code+
+            "/PP/"+
+            awbData.Decl_Value_Carriage+"/"+
+            awbData.Decl_Value_Customs+"/"+
+            awbData.Amount_Insurance+
+            "\r\n";
+        console.log(chargeDeclaration);
+
+        return chargeDeclaration;
+    }
+
+
     function createSSR() {
         let ssr="SSR/GENERAL\r\n/GENERAL"
+        console.log(ssr);
+        return ssr;
     }
 
     function createAgent() {
@@ -85,16 +113,19 @@ module.exports.awb = async function (req, res) {
         return "FLT/" + flightIdentification.slice(0, -1);
     }
 
-    async function createAWBConsignmentDetail(awbData, flightData) {
+    async function createAWBConsignmentDetail(awbData, flightData, detailsData) {
         let awbOriginAndDestination = getAWBOriginAndDestination(flightData);
-        const awbId = awbData[0].AWB_ID;
-        let details = await getQuantityDetail(awbId);
-        return awbData[0].IATA_Num + "-" + awbData[0].AWB_Num + awbOriginAndDestination + details;
+        const awbId = awbData.AWB_ID;
+        let details = getQuantityDetail(detailsData);
+        let awbDetails=awbData.IATA_Num + "-" + awbData.AWB_Num + awbOriginAndDestination + details;
+        console.log(awbDetails);
+        return awbDetails;
     }
 
 
     async function getAwbData(awbnr) {
-        return await knex('awb').where('AWB_Num', awbnr);
+        let awbData =  await knex('awb').where('AWB_Num', awbnr);
+        return awbData[0];
     }
 
     async function getFlightData(awbid) {
@@ -114,12 +145,22 @@ module.exports.awb = async function (req, res) {
     }
 
 
-    async function getQuantityDetail(awbid) {
-        let detailsData = await knex('awb_details').where('AWB_ID', awbid);
-        //console.log(detailsData);
-        return await '/T' + detailsData[0].Quantity + 'K' + detailsData[0].Weight;
-
+    function getQuantityDetail(detailsData) {
+       //console.log('detailsData-->',detailsData);
+        let quantity=detailsData.length;
+        let weight =_.sumBy(detailsData, 'Weight');
+        let details='/T' + quantity + 'K' + weight;
+        console.log(details);
+        return details;
     }
+
+
+    async function getDetailData(awbid) {
+        let detailsData = await knex('awb_details').where('AWB_ID', awbid);
+        return detailsData;
+    }
+
+
 
 
 };
