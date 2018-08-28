@@ -2,6 +2,7 @@ const _ = require('lodash');
 const knex = require('knex')(require('../database/knex'));
 const Eawb = require('../models/Eawb');
 const iso = require('iso-countries');
+const moment = require('moment');
 
 //5910225
 //62754576
@@ -24,41 +25,97 @@ module.exports.awb = async function (req, res) {
     awb.SSR = await createSSR();
     awb.ChargeDeclaration = createChargeDeclaration(awbData);
     awb.RateDescription = createRateDescription(detailData);
+    //awb.OtherChange = createOtherCharges();
+    awb.ShipperCertification = createShipperCertification();
+    awb.CarrierExecution = createCarrierExecution(awbData);
+    awb.SenderReference = createSenderReference();
+
+    awb.End=createEnd();
 
 
+    function createEnd() {
+        return'COR/X'+ '\r\n'+ 'SPH/100'+ '\r\n';
+    }
+
+
+    function createSenderReference() {
+        let senderReference='REF/CHACSSU' +'\r\n';
+
+        console.log(senderReference);
+        return senderReference;
+
+    }
+
+
+    function createCarrierExecution(awbData) {
+        let carrierExecution = 'ISU/';
+        let execDate = moment(new Date(awbData.Date)).format("DDMMMYY");
+        carrierExecution = carrierExecution + execDate + '/HAJ' + '\r\n';
+        console.log(carrierExecution);
+        return carrierExecution;
+    }
+
+    function createShipperCertification() {
+        let signatur = 'Express Reise- & Luftfrachtdienste GmbH'.slice(0, 19);
+        let cerification = 'CER/' + signatur + '\r\n';
+        console.log(cerification);
+        return cerification;
+    }
 
     //console.log(awb);
-    
-    function createRateDescription(detailData) {
-        let rateDescription="RTG/";
-        console.log(rateDescription);
+    function createOtherCharges() {
+        let otherCharge = 'OTH/P/AW';
 
+        console.log(otherCharge);
+        return otherCharge;
+    }
+
+
+    function createRateDescription(detailData) {
+        let rateDescription = "RTD/1/P";
+        let quantity = _.sumBy(detailData, 'Quantity');
+        let weight = _.sumBy(detailData, 'Weight');
+        let rateClassCode = detailData[0].RateClass;
+        let charge = _.sumBy(detailData, 'Charge');
+        let total = _.sumBy(detailData, 'Total');
+        rateDescription = rateDescription +
+            quantity + '/' +
+            detailData[0].Kg_Lb +
+            weight +
+            '/C' +
+            rateClassCode + '/W' + weight +
+            '/R' + charge +
+            '/T' + total + '\r\n';
+        let goodsDescription = '/NG/' + detailData[0].Description.replace('\r\n', " ").slice(0, 19) + '\r\n';
+        let dimensions = '/2/ND//NDA' + '\r\n';
+        let volume = '/3/NV/MC' + 'VOLUMENGEWICHT' + '\r\n';
+        rateDescription = rateDescription + goodsDescription + dimensions + volume;
+        console.log(rateDescription);
         return rateDescription;
     }
 
     function createChargeDeclaration(awbData) {
-        let chargeDeclaration="CVD/" + awbData.Currency+"/"
-            +awbData.CHGS_Code+
-            "/PP/"+
-            awbData.Decl_Value_Carriage+"/"+
-            awbData.Decl_Value_Customs+"/"+
-            awbData.Amount_Insurance+
+        let chargeDeclaration = "CVD/" + awbData.Currency + "/"
+            + awbData.CHGS_Code +
+            "/PP/" +
+            awbData.Decl_Value_Carriage + "/" +
+            awbData.Decl_Value_Customs + "/" +
+            awbData.Amount_Insurance +
             "\r\n";
         console.log(chargeDeclaration);
-
         return chargeDeclaration;
     }
 
 
     function createSSR() {
-        let ssr="SSR/GENERAL\r\n/GENERAL"
+        let ssr = "SSR/GENERAL\r\n/GENERAL";
         console.log(ssr);
         return ssr;
     }
 
     function createAgent() {
-        let name="/Express Reise- & Luftfrachtdienste GmbH".slice(0,34)+"\r\n";
-        let agent = "AGT//2347251/3061"+"\r\n"+name+"/30669 Hannover";
+        let name = "/Express Reise- & Luftfrachtdienste GmbH".slice(0, 34) + "\r\n";
+        let agent = "AGT//2347251/3061" + "\r\n" + name + "/30669 Hannover";
         console.log(agent);
         return agent;
     }
@@ -71,7 +128,7 @@ module.exports.awb = async function (req, res) {
         let consigneeStreet = "ADR/" + consigneeData[0].Street.slice(0, 34) + "\r\n";
         let consigneeLocation = "LOC/" + consigneeData[0].City.slice(0, 16) + "\r\n";
         let country = iso.findCountryByName(consigneeData[0].Country).alpha2;
-        let codedLocation_C = "/"+country + "/" + consigneeData[0].PostalCode + "\r\n";
+        let codedLocation_C = "/" + country + "/" + consigneeData[0].PostalCode + "\r\n";
         let consignee = "CNE\r\n" + consigneeName + consigneeStreet + consigneeLocation + codedLocation_C;
         console.log(consignee);
         return consignee;
@@ -117,14 +174,14 @@ module.exports.awb = async function (req, res) {
         let awbOriginAndDestination = getAWBOriginAndDestination(flightData);
         const awbId = awbData.AWB_ID;
         let details = getQuantityDetail(detailsData);
-        let awbDetails=awbData.IATA_Num + "-" + awbData.AWB_Num + awbOriginAndDestination + details;
+        let awbDetails = awbData.IATA_Num + "-" + awbData.AWB_Num + awbOriginAndDestination + details;
         console.log(awbDetails);
         return awbDetails;
     }
 
 
     async function getAwbData(awbnr) {
-        let awbData =  await knex('awb').where('AWB_Num', awbnr);
+        let awbData = await knex('awb').where('AWB_Num', awbnr);
         return awbData[0];
     }
 
@@ -146,10 +203,10 @@ module.exports.awb = async function (req, res) {
 
 
     function getQuantityDetail(detailsData) {
-       //console.log('detailsData-->',detailsData);
-        let quantity=detailsData.length;
-        let weight =_.sumBy(detailsData, 'Weight');
-        let details='/T' + quantity + 'K' + weight;
+        //console.log('detailsData-->',detailsData);
+        let quantity = detailsData.length;
+        let weight = _.sumBy(detailsData, 'Weight');
+        let details = '/T' + quantity + 'K' + weight;
         console.log(details);
         return details;
     }
@@ -159,8 +216,6 @@ module.exports.awb = async function (req, res) {
         let detailsData = await knex('awb_details').where('AWB_ID', awbid);
         return detailsData;
     }
-
-
 
 
 };
