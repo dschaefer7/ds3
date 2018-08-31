@@ -1,0 +1,12 @@
+.red-text{
+  border-color: red;
+  color: red;
+}
+
+.line-breaker {
+  white-space: pre-line;
+}
+
+.card{
+  width: 100%;
+}
