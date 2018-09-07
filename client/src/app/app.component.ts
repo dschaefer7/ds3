@@ -20,9 +20,9 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.form = new FormGroup({
       awbNr: new FormControl(null, [Validators.required]),
-      length: new FormControl(null, null),
-      width: new FormControl(null, null),
-      height: new FormControl(null, null),
+      length: new FormControl(null, Validators.pattern("^[0-9]*$")),
+      width: new FormControl(null, Validators.pattern("^[0-9]*$")),
+      height: new FormControl(null, Validators.pattern("^[0-9]*$")),
       product: new FormControl(null, [Validators.required]),
     })
   }
@@ -34,11 +34,9 @@ export class AppComponent implements OnInit, OnDestroy {
         (data) => {
           console.log("Success");
           this.generatedAwbData = data;
-
           setTimeout(() => {
             this.form.enable();
           }, 1000);
-
         },
         error => {
           console.log(error);
