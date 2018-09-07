@@ -10,13 +10,6 @@
         <div class="col-3">
           <input type="text" class="form-control-plaintext" placeholder="" value="AWB-Nr eingeben">
         </div>
-        <!--<div class="form-group mb-3 col-sm-3">-->
-          <!--<label for="awb_nr_label" class="sr-only">AWB-Nr</label>-->
-          <!--<input type="text" readonly class="form-control-plaintext" id="awb_nr_label" value="AWB-Nr eingeben">-->
-        <!--</div>-->
-        <!--<div class="form-group mx-sm-3 mb-2">-->
-
-          <!--<label for="awb_nr" class="sr-only">AWB-Nr</label>-->
         <div class="col-6">
           <input
             formControlName="awbNr"
@@ -37,27 +30,60 @@
 
       <div class="form-row mt-3">
         <div class="col-3">
-          <input type="text" class="form-control-plaintext" placeholder="" value="Dimensionen">
+          <input type="text" class="form-control-plaintext" placeholder="" value="Dimensionen (cm)">
         </div>
         <div class="col-2">
-          <input type="text" class="form-control" placeholder="Länge">
+          <input
+            formControlName="length"
+            type="text"
+            class="form-control"
+            placeholder="Länge">
         </div>
         <div class="col-2">
-          <input type="text" class="form-control" placeholder="Breite">
+          <input
+            formControlName="width"
+            type="text"
+            class="form-control"
+            placeholder="Breite">
         </div>
         <div class="col-2">
-          <input type="text" class="form-control" placeholder="Höhe">
+          <input
+            formControlName="height"
+            type="text"
+            class="form-control"
+            placeholder="Höhe">
         </div>
       </div>
 
 
-      <button
+      <div class="form-row mt-3">
+        <div class="col-3">
+          <input type="text" class="form-control-plaintext" placeholder="" value="Produkt">
+        </div>
+        <div class="col-6">
+          <ng-select [searchable]="false" formControlName="product">
+            <ng-option [value]="100">General</ng-option>
+            <ng-option [value]="300">Express</ng-option>
+            <ng-option [value]="420">Specialized - Live</ng-option>
+            <ng-option [value]="410">Specialized - Safe1</ng-option>
+            <ng-option [value]="411">Specialized - Safe2</ng-option>
+            <ng-option [value]="430">Specialized - Safe3</ng-option>
+            <ng-option [value]="450">Specialized - Fresh</ng-option>
+            <ng-option [value]="460">Specialized - Pharma</ng-option>
+            <ng-option [value]="470">Specialized - DGR</ng-option>
+          </ng-select>
+        </div>
+      </div>
+      <div class="form-row mt-5">
+        <div class="col-12">
+          <button
         type="submit"
-        class="btn btn-primary mt-2"
+        class="btn btn-primary btn-lg"
         [disabled]="form.invalid || form.disabled"
       >
         Generiere E-AWB
-      </button>
+      </button></div>
+      </div>
     </form>
 
     <div class="row mt-lg-5" *ngIf="generatedAwbData">

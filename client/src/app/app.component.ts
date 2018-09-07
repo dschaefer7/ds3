@@ -19,13 +19,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.form = new FormGroup({
-      awbNr: new FormControl(null, [Validators.required])
+      awbNr: new FormControl(null, [Validators.required]),
+      length: new FormControl(null, null),
+      width: new FormControl(null, null),
+      height: new FormControl(null, null),
+      product: new FormControl(null, [Validators.required]),
     })
   }
 
   generateAwb() {
     this.form.disable();
-    this.aSub = this.awbService.generate(this.form.value.awbNr)
+    this.aSub = this.awbService.generate(this.form.value)
       .subscribe(
         (data) => {
           console.log("Success");
