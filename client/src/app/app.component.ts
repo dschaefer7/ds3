@@ -2,6 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {AwbService} from './services/awb.service';
 import {Subscription} from 'rxjs/internal/Subscription';
+import {ClipboardService} from 'ngx-clipboard';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ export class AppComponent implements OnInit, OnDestroy {
   generatedAwbData: any;
 
 
-  constructor(private awbService: AwbService) {
+  constructor(private awbService: AwbService, private _clipboardService: ClipboardService) {
   }
 
   ngOnInit() {
@@ -45,6 +46,10 @@ export class AppComponent implements OnInit, OnDestroy {
           }, 2000);
         }
       )
+  }
+
+  callServiceToCopy() {
+    this._clipboardService.copyFromContent(this.generatedAwbData);
   }
 
   // delay(ms: number) {

@@ -5,6 +5,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { AppComponent } from './app.component';
 import {HttpClientModule} from '@angular/common/http';
 import { NgSelectModule } from '@ng-select/ng-select';
+import {ClipboardModule} from 'ngx-clipboard';
 
 
 @NgModule({
@@ -16,7 +17,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    NgSelectModule
+    NgSelectModule,
+    ClipboardModule
   ],
   providers: [],
   bootstrap: [AppComponent]

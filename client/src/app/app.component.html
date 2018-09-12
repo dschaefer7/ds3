@@ -77,16 +77,19 @@
       <div class="form-row mt-5">
         <div class="col-12">
           <button
-        type="submit"
-        class="btn btn-primary btn-lg"
-        [disabled]="form.invalid || form.disabled"
-      >
-        Generiere E-AWB
-      </button></div>
+            type="submit"
+            class="btn btn-primary btn-lg"
+            [disabled]="form.invalid || form.disabled"
+          >
+            Generiere E-AWB
+          </button>
+        </div>
       </div>
     </form>
+  </div>
 
-    <div class="row mt-lg-5" *ngIf="generatedAwbData">
+  <div class="row mt-lg-5" *ngIf="generatedAwbData">
+    <div class="col-8">
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">E-AWB</h5>
@@ -98,5 +101,12 @@
       </div>
     </div>
 
+    <div class="col-4">
+      <div class="justify-content-center">
+        <button class="btn btn-primary" (click)="callServiceToCopy()">AWB Kopieren</button>
+      </div>
+    </div>
   </div>
+
+
 </div>
